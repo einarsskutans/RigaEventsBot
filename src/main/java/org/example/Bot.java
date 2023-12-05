@@ -6,17 +6,43 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Objects;
+import java.util.Properties;
 
 public class Bot extends TelegramLongPollingBot {
     @Override
     public String getBotUsername() {
-        return "einarstestbot";
+        try {
+            FileInputStream propsInput = new FileInputStream("src/main/config.properties");
+            Properties properties = new Properties();
+            properties.load(propsInput);
+            return properties.getProperty("USERNAME");
+        }
+        catch (FileNotFoundException e) {
+            System.out.println("FileNotFoundException");
+        } catch (IOException e) {
+            System.out.println("IOException");
+        }
+        return "";
     }
 
     @Override
     public String getBotToken() {
-        return "6752312659:AAHpVu77vrrcmJoPrY5RRY7O8h6oGW1L058";
+        try {
+            FileInputStream propsInput = new FileInputStream("src/main/config.properties");
+            Properties properties = new Properties();
+            properties.load(propsInput);
+            return properties.getProperty("TOKEN");
+        }
+        catch (FileNotFoundException e) {
+            System.out.println("FileNotFoundException");
+        } catch (IOException e) {
+            System.out.println("IOException");
+        }
+        return "";
     }
 
     @Override
