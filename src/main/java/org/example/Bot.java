@@ -1,14 +1,20 @@
 package org.example;
 
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
 
@@ -47,18 +53,44 @@ public class Bot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-        var msg = update.getMessage();
-        var user = msg.getFrom();
-        var id = user.getId();
+        if (update.hasMessage()) {
+            // Initialized var
+            var msg = update.getMessage();
+            var user = msg.getFrom();
+            var id = user.getId();
 
-        if (Objects.equals(msg.getText(), "what")){
-            sendText(id, "ok");
+            // Buttons
+            var listButton = InlineKeyboardButton.builder()
+                    .text("List").callbackData("list")
+                    .build();
+            InlineKeyboardMarkup keyboard1 = InlineKeyboardMarkup.builder()
+                    .keyboardRow(List.of(listButton)).build();
+
+            if (Objects.equals(msg.getText(), "test")) {
+                sendKeyboard(id, "test", keyboard1);
+            }
+        } else if (update.hasCallbackQuery()) {
+            String data = update.getCallbackQuery().getData();
+            long msg = update.getCallbackQuery().getMessage().getMessageId();
+            long id = update.getCallbackQuery().getMessage().getChatId();
+            if (data.equals("list")) {
+
+            }
         }
     }
-    public void sendText(Long who, String str){
-        SendMessage sm = SendMessage.builder().chatId(who.toString()).text(str).build();
-        sm.setParseMode(ParseMode.HTML);
-        sm.disableWebPagePreview();
+    public void sendText(Long who, String str) { // Sends text message
+        SendMessage sm = SendMessage.builder().chatId(who.toString())
+                .parseMode("html").disableWebPagePreview(true).text(str).build();
+        try{
+            execute(sm);
+        } catch (TelegramApiException e){
+            throw new RuntimeException(e);
+        }
+    }
+    public void sendKeyboard(Long who, String str, InlineKeyboardMarkup kb) { // Sends keyboard [of buttons] message
+        SendMessage sm = SendMessage.builder().chatId(who.toString())
+                .parseMode("html").disableWebPagePreview(true).text(str)
+                .replyMarkup(kb).build();
         try{
             execute(sm);
         } catch (TelegramApiException e){
