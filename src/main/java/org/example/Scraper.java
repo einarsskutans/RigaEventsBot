@@ -13,7 +13,9 @@ import java.net.URL;
 import java.util.Arrays;
 
 public class Scraper {
-    public Document getDocument(){
+    StringBuilder adventListString = new StringBuilder();
+    Advent[] adventList = {};
+    public Document getDocument() {
         String url = "https://arenariga.com/#events";
         try {
             HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
@@ -39,10 +41,8 @@ public class Scraper {
             throw new RuntimeException(e);
         }
     }
-    public String scrapeEvents(){
+    public String scrapeEvents() {
         Document doc = getDocument();
-
-        Advent[] adventList = {};
         Elements targets = doc.select("article").select(".event_href");
         for (Element target : targets) {
             Advent advent = new Advent(target.select(".entry-title").text());
@@ -52,10 +52,12 @@ public class Scraper {
             adventList = Arrays.copyOf(adventList, adventList.length+1);
             adventList[adventList.length-1] = advent;
         }
-        StringBuilder adventListString = new StringBuilder();
         for (Advent advent : adventList){
             adventListString.append("\n• %s <strong>|</strong> <i>%s</i> <strong>|</strong> %s".formatted(advent.title, advent.date, advent.link));
         }
         return adventListString.toString();
+    }
+    public int cycleRight(int currentElement) {
+        return 2;
     }
 }

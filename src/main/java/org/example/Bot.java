@@ -4,6 +4,7 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
@@ -57,20 +58,28 @@ public class Bot extends TelegramLongPollingBot {
 
             // Buttons
             var listButton = InlineKeyboardButton.builder()
-                    .text("List").callbackData("list")
-                    .build();
+                    .text("List").callbackData("list").build();
+            var rightButton = InlineKeyboardButton.builder()
+                    .text(">").callbackData("right").build();
+            var leftButton = InlineKeyboardButton.builder()
+                    .text("<").callbackData("left").build();
             InlineKeyboardMarkup keyboard1 = InlineKeyboardMarkup.builder()
-                    .keyboardRow(List.of(listButton)).build();
+                    .keyboardRow(List.of(leftButton, listButton, rightButton))
+                    .build();
 
-            if (Objects.equals(msg.getText(), "test")) {
-                sendKeyboard(id, "test", keyboard1);
+            if (Objects.equals(msg.getText(), "/events")) {
+                sendKeyboard(id, "Menu", keyboard1);
             }
         } else if (update.hasCallbackQuery()) {
             String data = update.getCallbackQuery().getData();
             long msg = update.getCallbackQuery().getMessage().getMessageId();
             long id = update.getCallbackQuery().getMessage().getChatId();
+
             if (data.equals("list")) {
                 sendText(id, new Scraper().scrapeEvents());
+            }
+            if (data.equals("right")) {
+
             }
         }
     }
