@@ -54,61 +54,42 @@ public class Bot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
+        // Buttons
+        var listButton = InlineKeyboardButton.builder()
+                .text("All events").callbackData("list").build();
+        var closestButton = InlineKeyboardButton.builder()
+                .text("Closest event").callbackData("closest").build();
+        var thisyearButton = InlineKeyboardButton.builder()
+                .text("Events this year").callbackData("thisyear").build();
+        InlineKeyboardMarkup keyboard = InlineKeyboardMarkup.builder()
+                .keyboardRow(List.of(closestButton))
+                .keyboardRow(List.of(listButton, thisyearButton)).build();
+
         if (update.hasMessage()) {
             // Initialized var
             var msg = update.getMessage();
             var user = msg.getFrom();
             var id = user.getId();
 
-            // Buttons
-            var listButton = InlineKeyboardButton.builder()
-                    .text("All events").callbackData("list").build();
-            var closestButton = InlineKeyboardButton.builder()
-                    .text("Closest event").callbackData("closest").build();
-            var thisyearButton = InlineKeyboardButton.builder()
-                    .text("Events this year").callbackData("thisyear").build();
-            var replyKeyboardMarkupButton = InlineKeyboardButton.builder()
-                    .text("markup").callbackData("markup").build();
-            InlineKeyboardMarkup keyboard1 = InlineKeyboardMarkup.builder()
-                    .keyboardRow(List.of(closestButton))
-                    .keyboardRow(List.of(listButton, thisyearButton))
-                    .keyboardRow(List.of(replyKeyboardMarkupButton)).build();
-
+            // Commands
             if (Objects.equals(msg.getText(), "/events")) {
-                sendKeyboard(id, "Menu", keyboard1);
+                sendKeyboard(id, "<strong>Check events</strong>", keyboard);
             }
         } else if (update.hasCallbackQuery()) {
             String data = update.getCallbackQuery().getData();
             long id = update.getCallbackQuery().getMessage().getChatId();
 
-            if (data.equals("list")) {
-                sendText(id, adventListString(adventList));
-            }
+            // Data queries
             if (data.equals("closest")) {
                 sendText(id, closestEventString(adventList));
             }
+            if (data.equals("list")) {
+                sendText(id, adventListString(adventList));
+                sendKeyboard(id, "<strong>Check events</strong>", keyboard);
+            }
             if (data.equals("thisyear")) {
                 sendText(id, thisyearEventsString(adventList));
-            }
-            if (data.equals("markup")) {
-                try {
-                    ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
-                    List<KeyboardRow> keyboard = new ArrayList<>();
-                    KeyboardRow row = new KeyboardRow();
-                    row.add("Test button");
-                    keyboard.add(row);
-                    keyboardMarkup.setKeyboard(keyboard);
-
-                    // Create a message object
-                    SendMessage sm = SendMessage.builder().chatId(String.valueOf(id))
-                            .parseMode("html").disableWebPagePreview(true).text("message")
-                            .replyMarkup(keyboardMarkup).build();
-
-                    execute(sm);
-                }
-                catch (TelegramApiException e){
-                    throw new RuntimeException(e);
-                }
+                sendKeyboard(id, "<strong>Check events</strong>", keyboard);
             }
         }
     }
