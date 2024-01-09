@@ -13,8 +13,6 @@ import java.net.URL;
 import java.util.Arrays;
 
 public class Scraper {
-    StringBuilder adventListString = new StringBuilder();
-    Advent[] adventList = {};
     public Document getDocument() {
         String url = "https://arenariga.com/#events";
         try {
@@ -41,23 +39,17 @@ public class Scraper {
             throw new RuntimeException(e);
         }
     }
-    public String scrapeEvents() {
+    public Advent[] scrapeEvents() { // Returns an array of advents (events);
+        Advent[] adventList = {};
         Document doc = getDocument();
         Elements targets = doc.select("article").select(".event_href");
         for (Element target : targets) {
             Advent advent = new Advent(target.select(".entry-title").text());
             advent.date = target.select(".date").text().replaceAll(" • "+target.select(".cats").text(), ""); // Second argument formats the .date class string (replaces garbage with "" > nothing)
             advent.link = target.select(".event_href").attr("href");
-            //System.out.printf("TITLE: %s | DATE: %s | IMG: %s\n", advent.title, advent.date, advent.image);
             adventList = Arrays.copyOf(adventList, adventList.length+1);
             adventList[adventList.length-1] = advent;
         }
-        for (Advent advent : adventList){
-            adventListString.append("\n• %s <strong>|</strong> <i>%s</i> <strong>|</strong> %s".formatted(advent.title, advent.date, advent.link));
-        }
-        return adventListString.toString();
-    }
-    public int cycleRight(int currentElement) {
-        return 2;
+        return adventList;
     }
 }
