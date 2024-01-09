@@ -4,19 +4,22 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
 
 public class Bot extends TelegramLongPollingBot {
-    Advent[] adventList = new Scraper().scrapeEvents();
+    Advent[] adventList = new Scraper().scrapeEvents(); // Does it once as the bot initializes
     @Override
     public String getBotUsername() {
         try {
@@ -64,9 +67,12 @@ public class Bot extends TelegramLongPollingBot {
                     .text("Closest event").callbackData("closest").build();
             var thisyearButton = InlineKeyboardButton.builder()
                     .text("Events this year").callbackData("thisyear").build();
+            var replyKeyboardMarkupButton = InlineKeyboardButton.builder()
+                    .text("markup").callbackData("markup").build();
             InlineKeyboardMarkup keyboard1 = InlineKeyboardMarkup.builder()
-                    .keyboardRow(List.of(closestButton ))
-                    .keyboardRow(List.of(listButton, thisyearButton)).build();
+                    .keyboardRow(List.of(closestButton))
+                    .keyboardRow(List.of(listButton, thisyearButton))
+                    .keyboardRow(List.of(replyKeyboardMarkupButton)).build();
 
             if (Objects.equals(msg.getText(), "/events")) {
                 sendKeyboard(id, "Menu", keyboard1);
@@ -83,6 +89,26 @@ public class Bot extends TelegramLongPollingBot {
             }
             if (data.equals("thisyear")) {
                 sendText(id, thisyearEventsString(adventList));
+            }
+            if (data.equals("markup")) {
+                try {
+                    ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
+                    List<KeyboardRow> keyboard = new ArrayList<>();
+                    KeyboardRow row = new KeyboardRow();
+                    row.add("Test button");
+                    keyboard.add(row);
+                    keyboardMarkup.setKeyboard(keyboard);
+
+                    // Create a message object
+                    SendMessage sm = SendMessage.builder().chatId(String.valueOf(id))
+                            .parseMode("html").disableWebPagePreview(true).text("message")
+                            .replyMarkup(keyboardMarkup).build();
+
+                    execute(sm);
+                }
+                catch (TelegramApiException e){
+                    throw new RuntimeException(e);
+                }
             }
         }
     }
