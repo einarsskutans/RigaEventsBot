@@ -1,5 +1,8 @@
 package org.example;
 
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
@@ -19,6 +22,7 @@ import java.util.Properties;
 import static java.lang.Math.toIntExact;
 
 public class Bot extends TelegramLongPollingBot {
+    Logger logger = LogManager.getLogger(Main.class);
     Advent[] adventList = new Scraper().scrapeEvents(); // Does it once as the bot initializes
     @Override
     public String getBotUsername() {
@@ -29,11 +33,13 @@ public class Bot extends TelegramLongPollingBot {
             return properties.getProperty("USERNAME");
         }
         catch (FileNotFoundException e) {
-            System.out.println("FileNotFoundException");
+            logger.error("Config file not found");
         } catch (IOException e) {
-            System.out.println("IOException");
+            logger.error("IOException");
+        } catch (Exception e) { // Doesn't log/catch !!
+            logger.error("getBotUsername error; USERNAME might be empty");
         }
-        return "";
+        return null;
     }
 
     @Override
@@ -45,11 +51,13 @@ public class Bot extends TelegramLongPollingBot {
             return properties.getProperty("TOKEN");
         }
         catch (FileNotFoundException e) {
-            System.out.println("FileNotFoundException");
+            logger.error("Config file not found");
         } catch (IOException e) {
-            System.out.println("IOException");
+            logger.error("IOException");
+        } catch (Exception e) { // Doesn't log/catch !!
+            logger.error("getBotToken error; TOKEN might be empty");
         }
-        return "";
+        return null;
     }
 
     @Override
@@ -74,12 +82,13 @@ public class Bot extends TelegramLongPollingBot {
             // Commands
             if (Objects.equals(msg.getText(), "/events")) {
                 sendKeyboard(id, "<strong>Check events</strong>", keyboard);
+                logger.info("Command /events issued");
             }
-        } else if (update.hasCallbackQuery()) {
+        } else if (update.hasCallbackQuery()) { // Handles the keyboard queries
             String data = update.getCallbackQuery().getData();
             long id = update.getCallbackQuery().getMessage().getChatId();
             long message_id = update.getCallbackQuery().getMessage().getMessageId();
-            // Data queries
+            logger.info("Callback query issued");
             if (data.equals("closest")) {
                 editMessage(id, message_id, closestEventString(adventList), keyboard);
             }

@@ -45,7 +45,7 @@ public class Scraper {
         Elements targets = doc.select("article").select(".event_href");
         for (Element target : targets) {
             Advent advent = new Advent(target.select(".entry-title").text());
-            advent.date = target.select(".date").text().replaceAll(" • "+target.select(".cats").text(), ""); // Second argument formats the .date class string (replaces garbage with "" > nothing)
+            advent.date = target.select(".date").text().replaceAll(" • "+target.select(".cats").text(), ""); // Second argument formats the .date class string (replaces garbage with "" -> nothing)
             advent.link = target.select(".event_href").attr("href");
             adventList = Arrays.copyOf(adventList, adventList.length+1);
             adventList[adventList.length-1] = advent;
