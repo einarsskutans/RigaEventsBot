@@ -2,6 +2,7 @@ package org.example;
 
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -14,6 +15,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
+
+import static java.lang.Math.toIntExact;
 
 public class Bot extends TelegramLongPollingBot {
     Advent[] adventList = new Scraper().scrapeEvents(); // Does it once as the bot initializes
@@ -75,27 +78,29 @@ public class Bot extends TelegramLongPollingBot {
         } else if (update.hasCallbackQuery()) {
             String data = update.getCallbackQuery().getData();
             long id = update.getCallbackQuery().getMessage().getChatId();
-
+            long message_id = update.getCallbackQuery().getMessage().getMessageId();
             // Data queries
             if (data.equals("closest")) {
-                sendText(id, closestEventString(adventList));
+                editMessage(id, message_id, closestEventString(adventList), keyboard);
             }
             if (data.equals("list")) {
-                sendText(id, adventListString(adventList));
-                sendKeyboard(id, "<strong>Check events</strong>", keyboard);
+                editMessage(id, message_id, adventListString(adventList), keyboard);
             }
             if (data.equals("thisyear")) {
-                sendText(id, thisyearEventsString(adventList));
-                sendKeyboard(id, "<strong>Check events</strong>", keyboard);
+                editMessage(id, message_id, thisyearEventsString(adventList), keyboard);
             }
         }
     }
-    public void sendText(Long who, String str) { // Sends text message
-        SendMessage sm = SendMessage.builder().chatId(who.toString())
-                .parseMode("html").disableWebPagePreview(true).text(str).build();
-        try{
+    public void editMessage(Long chat_id, long message_id, String updated_text, InlineKeyboardMarkup keyboard) {
+        EditMessageText sm = EditMessageText.builder()
+                .chatId(chat_id.toString())
+                .messageId(toIntExact(message_id))
+                .text(updated_text)
+                .replyMarkup(keyboard)
+                .parseMode("html").disableWebPagePreview(true).build();
+        try {
             execute(sm);
-        } catch (TelegramApiException e){
+        } catch (TelegramApiException e) {
             throw new RuntimeException(e);
         }
     }
@@ -115,13 +120,13 @@ public class Bot extends TelegramLongPollingBot {
         StringBuilder string = new StringBuilder();
         string.append("<strong>All events:</strong>\n");
         for (Advent advent : adventList) {
-            string.append(String.format("• %s %s %s\n",advent.title, advent.date, advent.link));
+            string.append(String.format("• <a href='%s'>%s</a> %s\n", advent.link, advent.title, advent.date));
         }
         return String.valueOf(string);
     }
     public String closestEventString (Advent[] adventList) {
         String string;
-        string = String.format("<strong>Here are the 2 closest events:</strong>\n• %s %s %s\n• %s %s %s", adventList[0].title, adventList[0].date, adventList[0].link, adventList[1].title, adventList[1].date, adventList[1].link);
+        string = String.format("<strong>Here are the 2 closest events:</strong>\n• <a href='%s'>%s</a> %s\n• <a href='%s'>%s</a> %s", adventList[0].link, adventList[0].title, adventList[0].date, adventList[1].link, adventList[1].title, adventList[1].date);
         return string;
     }
     public String thisyearEventsString (Advent[] adventList) {
@@ -130,7 +135,7 @@ public class Bot extends TelegramLongPollingBot {
         string.append(String.format("<strong>List of events this year %d:</strong>\n", date));
         for (Advent advent : adventList) {
             if (advent.date.contains(String.valueOf(date))) {
-                string.append(String.format("• %s %s %s\n", advent.title, advent.date, advent.link));
+                string.append(String.format("• <a href='%s'>%s</a> %s\n", advent.link, advent.title, advent.date));
             }
         }
         return String.valueOf(string);
