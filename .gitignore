@@ -4,7 +4,7 @@ target/
 !**/src/test/**/target/
 /src/main/config.properties
 config.properties
-/C:/temp/logs/app.log
+/logs/app.log
 
 ### IntelliJ IDEA ###
 .idea/modules.xml
